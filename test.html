@@ -1,0 +1,31 @@
+<script charset="utf-8" src="vue.min.js"></script>
+<div id="main">
+  <input type="text" name="title" v-model="title">
+  <p>
+    {{title}}
+  </p>
+  <button name="button" v-on="click: addItem">add item</button>
+  <ul>
+    <li v-repeat="arr" data-index='{{$index}}'>
+      {{$index}}: {{hoge}}
+    </li>
+  </ul>
+</div>
+<script charset="utf-8">
+  var main = new Vue({
+    el: "#main",
+    data:{
+      title: "title",
+      arr: [
+        {hoge: "hogehoge"},
+        {hoge: "fugafuga"},
+        {hoge: "piyopiyo"}
+      ]
+    },
+    methods: {
+      addItem: function(){
+        this.$data.arr.push({hoge: this.$data.arr.length+" times pushed!!"});
+      }
+    }
+  })
+</script>

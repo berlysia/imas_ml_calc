@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>ミリマス発揮値計算機（仮）</title>
+    <script charset="utf-8" src="http://berlysia.github.io/js/jquery-2.0.3.min.js"></script>
+    <script charset="utf-8" src="vue.min.js"></script>
+    <style media="screen">
+      .factory {
+        background: #ebb;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>オーディションバトル発揮値計算機</h1>
+      <p>急に IMCが きたので とりあえず使えればいい人向け</p>
+    </header>
+    <div id="calc">
+      <div id="config">
+        <div v-repeat="renkei" data-index="{{$index}}">
+          <span>連携スキル{{$index+1}}. </span>
+          AP: <input type="number" min="0" step="0.001" v-model="ap">
+          DP: <input type="number" min="0" step="0.001" v-model="dp">
+        </div>
+      </div>
+      <button v-on="click: calc">calc</button>
+      <h2>フロントメンバー</h2>
+      <table id="frontMember">
+        <tr>
+          <th>move</th>
+          <th>name</th>
+          <th>AP</th>
+          <th>DP</th>
+          <th>親愛度</th>
+          <th>スキル種別</th>
+          <th>効果</th>
+          <th>スキル有効化</th>
+          <th>連携スキル適用</th>
+          <th>削除</th>
+        </tr>
+        <tr v-repeat="idol :frontMember" data-index='{{$index}}'>
+          <td>
+            <button v-on="click: moveUpIdol($index)">↑</button>
+            <button v-on="click: moveUpIdol($index,true)">↓</button>
+          </td>
+          <td v-show="idol.editable">
+            <input type="text" v-model="idol.name">
+          </td>
+          <td v-show="!idol.editable">
+            {{idol.name}}
+          </td>
+          <td><input type="number" min="0" max="20000" v-model="idol.ap"></td>
+          <td><input type="number" min="0" max="20000" v-model="idol.dp"></td>
+          <td><input type="number" min="0" max="500" step="100" v-model="idol.shinai"></td>
+          <td>{{idol.skill_type}}</td>
+          <td>
+            <div v-show="idol.editable">
+              <input type="number" max="10.00" min="0.00" step="0.01" v-model="idol.skill_effect.ap">
+              <input type="number" max="10.00" min="0.00" step="0.01" v-model="idol.skill_effect.dp">
+            </div>
+            <div v-show="!idol.editable">
+              SLv: <input type="number" max="20" min="1" v-model="idol.skill_level">
+            </div>
+          </td>
+          <td>
+            発動: <input type="checkbox" v-model="idol.skill_activated">
+          </td>
+          <td>
+            <label>
+              1: <input type="checkbox" v-model="idol.renkei_0">
+            </label>
+            <label>
+              2: <input type="checkbox" v-model="idol.renkei_1">
+            </label>
+            <label>
+              3: <input type="checkbox" v-model="idol.renkei_2">
+            </label>
+          </td>
+          <td>
+            <button v-on="click: removeIdol($index)">削除</button>
+          </td>
+        </tr>
+        <tr v-show="frontMember.length < 9" class="factory">
+          <td>新規</td>
+          <td colspan="5">
+            <select v-model="idolFactory.region" v-on="change: preloadByFormChange">
+              <option selected="selected">--</option>
+              <option>Vo</option>
+              <option>Da</option>
+              <option>Vi</option>
+              <option>Ex</option>
+            </select>
+
+            <select v-model="idolFactory.rarity" v-on="change: preloadByFormChange">
+              <option selected="selected">--</option>
+              <option>SR</option>
+              <option>HR</option>
+              <option>R</option>
+              <option>HN</option>
+              <option>N</option>
+            </select>
+
+            <select v-model="idolFactory.id">
+              <option v-repeat="id:activeIDs" data-index='{{$index}}' value="{{id}}">{{activeNames[$index]}}</option>
+            </select>
+
+            <button v-on="click: addIdol(idolFactory.id)">new!!</button>
+            <button v-on="click: addIdol(1e5)">manual</button>
+          </td>
+        </tr>
+      </table>
+      <hr>
+      <h2>サポートメンバー</h2>
+      <table id="supportMember">
+        <tr>
+          <th>name</th>
+          <th>cost</th>
+          <th>AP</th>
+          <th>DP</th>
+          <th>コス比</th>
+          <th>削除</th>
+        </tr>
+        <tr v-repeat="idol :supportMember" data-index='{{$index}}'>
+          <td v-show="idol.editable">
+            <input type="text" v-model="idol.name">
+          </td>
+          <td v-show="!idol.editable">
+            {{idol.name}}
+          </td>
+          <td>
+            <div v-show="idol.editable">
+              <input type="number" max="99" min="1" v-model="idol.cost">
+            </div>
+            <div v-show="!idol.editable">
+              {{idol.cost}}
+            </div>
+          </td>
+          <td><input type="number" min="0" max="20000" v-model="idol.ap | to_i"></td>
+          <td><input type="number" min="0" max="20000" v-model="idol.dp | to_i"></td>
+          <td>{{percost[$index]}}</td>
+          <td>
+            <button v-on="click: removeIdol($index,true)">削除</button>
+          </td>
+        </tr>
+        <tr class="factory">
+          <td>新規</td>
+          <td colspan="5">
+            <select v-model="idolFactory.region" v-on="change: preloadByFormChange">
+              <option selected="selected">--</option>
+              <option>Vo</option>
+              <option>Da</option>
+              <option>Vi</option>
+              <option>Ex</option>
+            </select>
+
+            <select v-model="idolFactory.rarity" v-on="change: preloadByFormChange">
+              <option selected="selected">--</option>
+              <option>SR</option>
+              <option>HR</option>
+              <option>R</option>
+              <option>HN</option>
+              <option>N</option>
+            </select>
+
+            <select v-model="idolFactory.id">
+              <option v-repeat="id:activeIDs" data-index='{{$index}}' value="{{id}}">{{activeNames[$index]}}</option>
+            </select>
+
+            <button v-on="click: addIdol(idolFactory.id,true)">new!!</button>
+            <button v-on="click: addIdol(1e5,true)">manual</button>
+          </td>
+        </tr>
+      </table>
+      <hr>
+      <div id="result">
+        <strong>算出発揮値: {{result.sum}}</strong>
+      </div>
+    </div>
+    <hr>
+    <address>
+      [Thanks] 検証スレのみなさま、ABC開発者の方
+    </address>
+    <script charset="utf-8" src="main.js"></script>
+  </body>
+</html>
