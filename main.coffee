@@ -1,4 +1,4 @@
-basePath = "http://berlysia.github.io/imas_ml/millionlive_"
+basePath = "http://berlysia.github.io/imas_ml/stat/millionlive_"
 
 effectFactory = (base,step) ->
   (level)->
