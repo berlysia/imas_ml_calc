@@ -59,8 +59,8 @@
           <td><input type="number" min="0" max="20000" v-model="idol.dp"></td>
           <td><input type="number" min="0" max="500" step="100" v-model="idol.shinai"></td>
           <td>
-            <div v-show="idol.editable">{{idol.skill_type}}</div>
-            <div v-show="!idol.editable">直接指定してください→</div>
+            <div v-show="!idol.editable">{{idol.skill_type}}</div>
+            <div v-show="idol.editable">直接指定してください→</div>
           </td>
           <td>
             <div v-show="idol.editable">
