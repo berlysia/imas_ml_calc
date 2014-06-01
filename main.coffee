@@ -207,22 +207,22 @@ content = $ ->
         support = []# @$data.result.support
 
         for i,idol of @$data.frontMember
-          shinai = switch idol.shinai
+          shinai = switch parseInt(idol.shinai)
             when 500 then 0.0825
             when 400 then 0.0775
             when 300 then 0.07
             when 200 then 0.06
             when 100 then 0.05
             else 0
-          baseAP = idol.ap + Math.ceil(idol.ap * shinai)
-          baseDP = idol.dp + Math.ceil(idol.dp * shinai)
-          incAP = Math.floor(baseAP * @$data.roungeBonus.ap)
-          incDP = Math.floor(baseDP * @$data.roungeBonus.dp)
+          baseAP = parseInt(idol.ap) + Math.ceil(parseInt(idol.ap) * shinai)
+          baseDP = parseInt(idol.dp) + Math.ceil(parseInt(idol.dp) * shinai)
+          incAP = Math.floor(baseAP * parseFloat(@$data.roungeBonus.ap))
+          incDP = Math.floor(baseDP * parseFloat(@$data.roungeBonus.dp))
 
           for j,ren of @$data.renkei
             continue unless idol["renkei_"+j]
-            incAP += Math.floor(baseAP * ren.ap)
-            incDP += Math.floor(baseDP * ren.dp)
+            incAP += Math.floor(baseAP * parseFloat(ren.ap))
+            incDP += Math.floor(baseDP * parseFloat(ren.dp))
 
           front[i] = {
             baseAP:baseAP
@@ -244,8 +244,8 @@ content = $ ->
 
         for i,idol of @$data.supportMember
           support[i] = {
-            ap: Math.floor(idol.ap * 0.8)
-            dp: Math.floor(idol.dp * 0.8)
+            ap: Math.floor(parseInt(idol.ap) * 0.8)
+            dp: Math.floor(parseInt(idol.dp) * 0.8)
           }
 
         # console.log front.map (f)-> [f.baseAP,f.incAP]

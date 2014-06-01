@@ -313,7 +313,7 @@ content = $(function() {
         for (i in _ref) {
           idol = _ref[i];
           shinai = (function() {
-            switch (idol.shinai) {
+            switch (parseInt(idol.shinai)) {
               case 500:
                 return 0.0825;
               case 400:
@@ -328,18 +328,18 @@ content = $(function() {
                 return 0;
             }
           })();
-          baseAP = idol.ap + Math.ceil(idol.ap * shinai);
-          baseDP = idol.dp + Math.ceil(idol.dp * shinai);
-          incAP = Math.floor(baseAP * this.$data.roungeBonus.ap);
-          incDP = Math.floor(baseDP * this.$data.roungeBonus.dp);
+          baseAP = parseInt(idol.ap) + Math.ceil(parseInt(idol.ap) * shinai);
+          baseDP = parseInt(idol.dp) + Math.ceil(parseInt(idol.dp) * shinai);
+          incAP = Math.floor(baseAP * parseFloat(this.$data.roungeBonus.ap));
+          incDP = Math.floor(baseDP * parseFloat(this.$data.roungeBonus.dp));
           _ref1 = this.$data.renkei;
           for (j in _ref1) {
             ren = _ref1[j];
             if (!idol["renkei_" + j]) {
               continue;
             }
-            incAP += Math.floor(baseAP * ren.ap);
-            incDP += Math.floor(baseDP * ren.dp);
+            incAP += Math.floor(baseAP * parseFloat(ren.ap));
+            incDP += Math.floor(baseDP * parseFloat(ren.dp));
           }
           front[i] = {
             baseAP: baseAP,
@@ -376,8 +376,8 @@ content = $(function() {
         for (i in _ref5) {
           idol = _ref5[i];
           support[i] = {
-            ap: Math.floor(idol.ap * 0.8),
-            dp: Math.floor(idol.dp * 0.8)
+            ap: Math.floor(parseInt(idol.ap) * 0.8),
+            dp: Math.floor(parseInt(idol.dp) * 0.8)
           };
         }
         this.$data.result.front = front;
