@@ -232,7 +232,8 @@ content = $(function() {
       result: {
         front: [],
         support: [],
-        sum: 0
+        sumAud: 0,
+        sumFes: 0
       }
     },
     computed: {
@@ -306,7 +307,7 @@ content = $(function() {
         return this;
       },
       calc: function() {
-        var baseAP, baseDP, eff, front, i, idol, idol_i, idol_j, incAP, incDP, j, obj, ren, shinai, sum, support, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
+        var baseAP, baseDP, eff, front, i, idol, idol_i, idol_j, incAP, incDP, j, obj, ren, shinai, sumAud, sumFes, support, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
         front = [];
         support = [];
         _ref = this.$data.frontMember;
@@ -382,20 +383,24 @@ content = $(function() {
         }
         this.$data.result.front = front;
         this.$data.result.support = support;
-        sum = 0;
+        sumAud = 0;
+        sumFes = 0;
         for (i in front) {
           obj = front[i];
-          sum += obj.baseAP;
-          sum += obj.baseDP;
-          sum += obj.incAP;
-          sum += obj.incDP;
+          sumAud += obj.baseAP;
+          sumAud += obj.baseDP;
+          sumAud += obj.incAP;
+          sumAud += obj.incDP;
+          sumFes += obj.incAP;
+          sumFes += obj.baseAP;
         }
         for (i in support) {
           obj = support[i];
-          sum += obj.ap;
-          sum += obj.dp;
+          sumAud += obj.ap;
+          sumAud += obj.dp;
         }
-        return this.$data.result.sum = sum;
+        this.$data.result.sumAud = sumAud;
+        return this.$data.result.sumFes = sumFes;
       }
     }
   });

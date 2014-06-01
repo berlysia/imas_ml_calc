@@ -144,7 +144,8 @@ content = $ ->
       result:
         front: []
         support: []
-        sum: 0
+        sumAud: 0
+        sumFes: 0
     computed:
       percost: ->
         @$data.supportMember.map (idol)-> ((parseInt(idol.ap)+parseInt(idol.dp))/idol.cost).toFixed(2)
@@ -254,13 +255,17 @@ content = $ ->
         @$data.result.front = front
         @$data.result.support = support
 
-        sum = 0
+        sumAud = 0
+        sumFes = 0
         for i,obj of front
-          sum += obj.baseAP
-          sum += obj.baseDP
-          sum += obj.incAP
-          sum += obj.incDP
+          sumAud += obj.baseAP
+          sumAud += obj.baseDP
+          sumAud += obj.incAP
+          sumAud += obj.incDP
+          sumFes += obj.incAP
+          sumFes += obj.baseAP
         for i,obj of support
-          sum += obj.ap
-          sum += obj.dp
-        @$data.result.sum = sum
+          sumAud += obj.ap
+          sumAud += obj.dp
+        @$data.result.sumAud = sumAud
+        @$data.result.sumFes = sumFes

@@ -58,11 +58,14 @@
           <td><input type="number" min="0" max="20000" v-model="idol.ap"></td>
           <td><input type="number" min="0" max="20000" v-model="idol.dp"></td>
           <td><input type="number" min="0" max="500" step="100" v-model="idol.shinai"></td>
-          <td>{{idol.skill_type}}</td>
+          <td>
+            <div v-show="idol.editable">{{idol.skill_type}}</div>
+            <div v-show="!idol.editable">直接指定してください→</div>
+          </td>
           <td>
             <div v-show="idol.editable">
-              <input type="number" max="10.00" min="0.00" step="0.01" v-model="idol.skill_effect.ap">
-              <input type="number" max="10.00" min="0.00" step="0.01" v-model="idol.skill_effect.dp">
+              AP: <input type="number" max="10.00" min="0.00" step="0.01" v-model="idol.skill_effect.ap">
+              DP: <input type="number" max="10.00" min="0.00" step="0.01" v-model="idol.skill_effect.dp">
             </div>
             <div v-show="!idol.editable">
               SLv: <input type="number" max="20" min="1" v-model="idol.skill_level">
@@ -73,13 +76,13 @@
           </td>
           <td>
             <label>
-              1: <input type="checkbox" v-model="idol.renkei_0">
+              1:<input class="renkei_1" type="checkbox" v-model="idol.renkei_0">
             </label>
             <label>
-              2: <input type="checkbox" v-model="idol.renkei_1">
+              2:<input class="renkei_2" type="checkbox" v-model="idol.renkei_1">
             </label>
             <label>
-              3: <input type="checkbox" v-model="idol.renkei_2">
+              3:<input class="renkei_3" type="checkbox" v-model="idol.renkei_2">
             </label>
           </td>
           <td>
@@ -112,6 +115,11 @@
 
             <button v-on="click: addIdol(idolFactory.id)">new!!</button>
             <button v-on="click: addIdol(1e5)">manual</button>
+          </td>
+        </tr>
+        <tr>
+          <td>
+
           </td>
         </tr>
       </table>
@@ -180,7 +188,8 @@
       <hr>
       <div id="result">
         <button v-on="click: calc">calc</button>
-        <strong>算出発揮値: {{result.sum}}</strong>
+        <strong>オーディションバトル発揮値: {{result.sumAud}}</strong>
+        <strong>合同フェス発揮値: {{result.sumFes}}</strong>
       </div>
     </div>
     <hr>
