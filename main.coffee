@@ -208,13 +208,13 @@ content = $ ->
         support = []# @$data.result.support
 
         for i,idol of @$data.frontMember
-          shinai = switch parseInt(idol.shinai)
-            when 500 then 0.0825
-            when 400 then 0.0775
-            when 300 then 0.07
-            when 200 then 0.06
-            when 100 then 0.05
-            else 0
+          shinai = 0
+          shinai = 0.05 if 100 <= parseInt(idol.shinai)
+          shinai = 0.06 if 200 <= parseInt(idol.shinai)
+          shinai = 0.07 if 300 <= parseInt(idol.shinai)
+          shinai = 0.0775 if 400 <= parseInt(idol.shinai)
+          shinai = 0.0825 if 500 <= parseInt(idol.shinai)
+          
           baseAP = parseInt(idol.ap) + Math.ceil(parseInt(idol.ap) * shinai)
           baseDP = parseInt(idol.dp) + Math.ceil(parseInt(idol.dp) * shinai)
           incAP = Math.floor(baseAP * parseFloat(@$data.roungeBonus.ap))

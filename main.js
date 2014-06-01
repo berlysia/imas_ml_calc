@@ -313,22 +313,22 @@ content = $(function() {
         _ref = this.$data.frontMember;
         for (i in _ref) {
           idol = _ref[i];
-          shinai = (function() {
-            switch (parseInt(idol.shinai)) {
-              case 500:
-                return 0.0825;
-              case 400:
-                return 0.0775;
-              case 300:
-                return 0.07;
-              case 200:
-                return 0.06;
-              case 100:
-                return 0.05;
-              default:
-                return 0;
-            }
-          })();
+          shinai = 0;
+          if (100 <= parseInt(idol.shinai)) {
+            shinai = 0.05;
+          }
+          if (200 <= parseInt(idol.shinai)) {
+            shinai = 0.06;
+          }
+          if (300 <= parseInt(idol.shinai)) {
+            shinai = 0.07;
+          }
+          if (400 <= parseInt(idol.shinai)) {
+            shinai = 0.0775;
+          }
+          if (500 <= parseInt(idol.shinai)) {
+            shinai = 0.0825;
+          }
           baseAP = parseInt(idol.ap) + Math.ceil(parseInt(idol.ap) * shinai);
           baseDP = parseInt(idol.dp) + Math.ceil(parseInt(idol.dp) * shinai);
           incAP = Math.floor(baseAP * parseFloat(this.$data.roungeBonus.ap));
