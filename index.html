@@ -23,8 +23,13 @@
           AP: <input type="number" min="0" step="0.001" v-model="ap">
           DP: <input type="number" min="0" step="0.001" v-model="dp">
         </div>
+        <div>
+          <span>ラウンジボーナス</span>
+          AP: <input type="number" min="0" step="0.01" v-model="roungeBonus.ap">
+          DP: <input type="number" min="0" step="0.01" v-model="roungeBonus.dp">
+        </div>
       </div>
-      <button v-on="click: calc">calc</button>
+
       <h2>フロントメンバー</h2>
       <table id="frontMember">
         <tr>
@@ -174,6 +179,7 @@
       </table>
       <hr>
       <div id="result">
+        <button v-on="click: calc">calc</button>
         <strong>算出発揮値: {{result.sum}}</strong>
       </div>
     </div>
