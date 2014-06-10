@@ -15,6 +15,7 @@
     <header>
       <h1>オーディションバトル発揮値計算機</h1>
       <p>急に IMCが きたので とりあえず使えればいい人向け</p>
+      <p>(2014/06/10)現在、マニュアル指定したアイドルはスキルの対象になりません。対処を検討中です。</p>
     </header>
     <div id="calc">
       <div id="config">
@@ -125,6 +126,7 @@
       </table>
       <hr>
       <h2>サポートメンバー</h2>
+      <p>コスト上限を考慮しませんのでご注意ください。上限設定等の実装を予定しています。</p>
       <table id="supportMember">
         <tr>
           <th>name</th>
@@ -189,7 +191,7 @@
       <div id="result">
         <button v-on="click: calc">calc</button>
         <strong>オーディションバトル発揮値: {{result.sumAud}}</strong>
-        <strong>合同フェス発揮値: {{result.sumFes}}</strong>
+        <strong>合同フェス発揮値（参考）: {{result.sumFes}}</strong>
       </div>
     </div>
     <hr>
