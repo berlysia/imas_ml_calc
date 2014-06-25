@@ -74,7 +74,7 @@ effectParse = (serial,target)->
 getEffect = (serial,level) ->
   return {ap:0, dp:0} if level < 1 || 20 < level
   if effectParse(serial,"other")==1 || effectParse(serial,"targetPlayer")==0 || effectParse(serial,"upOrDown")==0
-    console.log "rejected",effectParse(serial,"other"),effectParse(serial,"targetPlayer"),effectParse(serial,"upOrDown")
+    # console.log "rejected",effectParse(serial,"other"),effectParse(serial,"targetPlayer"),effectParse(serial,"upOrDown")
     return {ap:0, dp:0}
   else
     target = []
@@ -90,7 +90,7 @@ getEffect = (serial,level) ->
       firstKey = "self"
       target.push "self"
     else
-      console.log "othercase"
+      # console.log "othercase"
       return {ap:0, dp:0}
 
     secondKey = if (effectParse(serial,"apActive")&effectParse(serial,"dpActive")) then "both" else "one"
@@ -137,6 +137,7 @@ content = $ ->
       loaded: []
       frontMember: []
       supportMember: []
+      supportCostLimit: 130
       idolFactory:
         region: "--"
         rarity: "--"
@@ -144,7 +145,9 @@ content = $ ->
       result:
         front: []
         support: []
+        detail: ""
         sumAud: 0
+        sumAudInIMC: 0
         sumFes: 0
     computed:
       percost: ->
@@ -152,11 +155,11 @@ content = $ ->
     methods:
       preload: (reg,rar)->
         prop = reg+"_"+rar
-        console.log @$data.loaded, reg, rar
+        # console.log @$data.loaded, reg, rar
         unless prop of @$data.loaded
           return $.get(basePath+prop+".json")
             .then (d,s)=>
-              console.log "loaded:", s, d
+              # console.log "loaded:", s, d
               @$data.loaded.push prop
               @$data.activeIDs = []
               @$data.activeNames = []
@@ -178,14 +181,24 @@ content = $ ->
           return $.Deferred()
 
       preloadByFormChange: ->
-        console.log "formchange detected"
+        # console.log "formchange detected"
         reg = @$data.idolFactory.region
         rar = @$data.idolFactory.rarity
         return if reg=="--" || rar=="--"
         @preload(reg,rar)
 
+      renkeiCheckAll: (idx) ->
+        # console.log idx
+        if (@$data.frontMember.every (idol) -> idol['renkei_'+idx])
+          for i,idol of @$data.frontMember
+            idol['renkei_'+idx] = false
+        else
+          for i,idol of @$data.frontMember
+            idol['renkei_'+idx] = true
+        @
+
       addIdol: (id,isSupport)->
-        console.log id, @$data.idolList[id]
+        # console.log id, @$data.idolList[id]
         member = if isSupport then @$data.supportMember else @$data.frontMember
         tmp = null
         if typeof @$data.idolList[id] != "undefined"
@@ -214,58 +227,132 @@ content = $ ->
           shinai = 0.07 if 300 <= parseInt(idol.shinai)
           shinai = 0.0775 if 400 <= parseInt(idol.shinai)
           shinai = 0.0825 if 500 <= parseInt(idol.shinai)
-          
+
           baseAP = parseInt(idol.ap) + Math.ceil(parseInt(idol.ap) * shinai)
           baseDP = parseInt(idol.dp) + Math.ceil(parseInt(idol.dp) * shinai)
-          incAP = Math.floor(baseAP * parseFloat(@$data.roungeBonus.ap))
-          incDP = Math.floor(baseDP * parseFloat(@$data.roungeBonus.dp))
 
+          incByRoungeAP = Math.floor(baseAP * parseFloat(@$data.roungeBonus.ap))
+          incByRoungeDP = Math.floor(baseDP * parseFloat(@$data.roungeBonus.dp))
+
+          incByRenkeiAP = [0,0,0]
+          incByRenkeiDP = [0,0,0]
           for j,ren of @$data.renkei
-            continue unless idol["renkei_"+j]
-            incAP += Math.floor(baseAP * parseFloat(ren.ap))
-            incDP += Math.floor(baseDP * parseFloat(ren.dp))
+            if idol["renkei_"+j]
+              incByRenkeiAP[j] += Math.floor(baseAP * parseFloat(ren.ap))
+              incByRenkeiDP[j] += Math.floor(baseDP * parseFloat(ren.dp))
+
+          sumOfRenkeiAP = incByRenkeiAP.reduce (a,b)->a+b
+          sumOfRenkeiDP = incByRenkeiDP.reduce (a,b)->a+b
 
           front[i] = {
-            baseAP:baseAP
-            baseDP:baseDP
-            incAP:incAP
-            incDP:incDP
+            name: idol.name
+            orgAP: idol.ap
+            orgDP: idol.dp
+            shinaiBonusAP: Math.ceil(parseInt(idol.ap) * shinai)
+            shinaiBonusDP: Math.ceil(parseInt(idol.dp) * shinai)
+            baseAP: baseAP
+            baseDP: baseDP
+            incByRoungeAP: incByRoungeAP
+            incByRoungeDP: incByRoungeDP
+            incByRenkeiAP: incByRenkeiAP
+            incByRenkeiDP: incByRenkeiDP
+            incBySkillAP: []
+            incBySkillDP: []
+            sumOfRenkeiAP: sumOfRenkeiAP
+            sumOfRenkeiDP: sumOfRenkeiDP
+            sumOfSkillAP: 0
+            sumOfSkillDP: 0
           }
 
         for i,idol_i of @$data.frontMember
-          eff = idol_i.skill_effect
-          console.log eff.target
+          # eff = idol_i.skill_effect
+          eff = getEffect(idol_i.skill_serialized,idol_i.skill_level)
+          continue unless idol_i.skill_activated
+          # console.log eff.target, idol_i.skill_activated
           for j,idol_j of @$data.frontMember
-            continue unless idol_j.skill_activated
             continue unless eff.target?
             continue if "self" in eff.target && i != j
             continue unless idol_j.region in eff.target
-            front[j].incAP += Math.floor(front[j].baseAP * eff.ap)
-            front[j].incDP += Math.floor(front[j].baseDP * eff.dp)
+            front[j].incBySkillAP.push([eff,Math.floor(front[j].baseAP * eff.ap)])
+            front[j].incBySkillDP.push([eff,Math.floor(front[j].baseDP * eff.dp)])
+            front[j].sumOfSkillAP += Math.floor(front[j].baseAP * eff.ap)
+            front[j].sumOfSkillDP += Math.floor(front[j].baseDP * eff.dp)
 
         for i,idol of @$data.supportMember
           support[i] = {
+            name: idol.name
             ap: Math.floor(parseInt(idol.ap) * 0.8)
             dp: Math.floor(parseInt(idol.dp) * 0.8)
           }
 
-        # console.log front.map (f)-> [f.baseAP,f.incAP]
-        # console.log support.map (s)-> s.ap
-
         @$data.result.front = front
         @$data.result.support = support
+
+        detail = ""
+
+        detail += "-- フロントメンバー\n"
 
         sumAud = 0
         sumFes = 0
         for i,obj of front
-          sumAud += obj.baseAP
-          sumAud += obj.baseDP
-          sumAud += obj.incAP
-          sumAud += obj.incDP
-          sumFes += obj.incAP
-          sumFes += obj.baseAP
+          sumAudTmp = 0
+          sumAudTmp += obj.baseAP
+          sumAudTmp += obj.baseDP
+          sumAudTmp += obj.incByRoungeAP
+          sumAudTmp += obj.incByRoungeDP
+          sumAudTmp += obj.sumOfRenkeiAP + obj.sumOfRenkeiDP
+          sumAudTmp += obj.sumOfSkillAP
+          sumAudTmp += obj.sumOfSkillDP
+          sumAud += sumAudTmp
+
+          sumFesTmp = 0
+          sumFesTmp += obj.sumOfRenkeiAP
+          sumFesTmp += obj.sumOfSkillAP
+          sumFesTmp += obj.baseAP
+          sumFes += sumFesTmp
+
+          detail += "[#{parseInt(i)+1}] #{obj.name}\n"
+          detail += "  計算基本AP: #{obj.baseAP}\n"
+          detail += "    基礎: #{obj.orgAP} + 親愛: #{obj.shinaiBonusAP}\n"
+          detail += "  連携スキル増加分: #{obj.sumOfRenkeiAP}\n"
+          for j,val of obj.incByRenkeiAP
+            detail += "    + 連携スキル#{(parseInt(j)+1)} x#{@$data.renkei[j].ap}: #{val}\n" if 0<val
+          detail += "  固有スキル増加分: #{obj.sumOfSkillAP}\n"
+          for j,val of obj.incBySkillAP
+            detail += "    + #{val[0].target} x#{val[0].ap}: #{val[1]}\n"
+          detail += "-> 合同フェス発揮基準値: #{sumFesTmp}\n"
+          detail += "  計算基本DP: #{obj.baseDP}\n"
+          detail += "    基礎: #{obj.orgDP} + 親愛: #{obj.shinaiBonusDP}\n"
+          detail += "  連携スキル増加分: #{obj.sumOfRenkeiDP}\n"
+          for j,val of obj.incByRenkeiDP
+            detail += "    + 連携スキル#{(parseInt(j)+1)} x#{@$data.renkei[j].dp}: #{val}\n" if 0<val
+          detail += "  固有スキル増加分: #{obj.sumOfSkillDP}\n"
+          for j,val of obj.incBySkillDP
+            detail += "    + #{val[0].target} x#{val[0].dp}: #{val[1]}\n"
+          detail += "  ラウンジボーナスAP: #{obj.incByRoungeAP}\n"
+          detail += "  ラウンジボーナスDP: #{obj.incByRoungeDP}\n"
+          detail += "-> オーディションバトル発揮値: #{sumAudTmp}\n"
+          detail += "  -----  -----  -----  -----  \n"
+
+        detail += "\n-- サポートメンバー\n"
         for i,obj of support
-          sumAud += obj.ap
-          sumAud += obj.dp
+          sumAudTmp = 0
+          sumAudTmp += obj.ap
+          sumAudTmp += obj.dp
+          sumAud += sumAudTmp
+          detail += "#{obj.name}: #{obj.ap} + #{obj.dp} = #{sumAudTmp}\n"
+
+        detail += "\n\n"
+        detail += "合同フェス発揮基準値（総合）: #{sumFes}\n"
+        detail += "オーディションバトル発揮値（総合）: #{sumAud}\n"
+
+        detail += "合同フェス先制アピール参考値\n"
+        detail += "BP1: normal->#{parseInt(sumFes)/12}, nice->#{parseInt(sumFes)/6}, perfect->#{parseInt(sumFes)/2}\n"
+        detail += "BP2: normal->#{parseInt(sumFes)/20}, nice->#{parseInt(sumFes)/10}, perfect->#{parseInt(sumFes)*3/10}\n"
+        detail += "BP3: normal->#{parseInt(sumFes)/24}, nice->#{parseInt(sumFes)/12}, perfect->#{parseInt(sumFes)/4}\n"
+
         @$data.result.sumAud = sumAud
+        @$data.result.sumAudInIMC = Math.ceil(sumAud*1.1)
         @$data.result.sumFes = sumFes
+        @$data.result.detail = detail
+        # console.log @$data.result.detail

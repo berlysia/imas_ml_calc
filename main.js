@@ -104,7 +104,6 @@ getEffect = function(serial, level) {
     };
   }
   if (effectParse(serial, "other") === 1 || effectParse(serial, "targetPlayer") === 0 || effectParse(serial, "upOrDown") === 0) {
-    console.log("rejected", effectParse(serial, "other"), effectParse(serial, "targetPlayer"), effectParse(serial, "upOrDown"));
     return {
       ap: 0,
       dp: 0
@@ -129,7 +128,6 @@ getEffect = function(serial, level) {
       firstKey = "self";
       target.push("self");
     } else {
-      console.log("othercase");
       return {
         ap: 0,
         dp: 0
@@ -224,6 +222,7 @@ content = $(function() {
       loaded: [],
       frontMember: [],
       supportMember: [],
+      supportCostLimit: 130,
       idolFactory: {
         region: "--",
         rarity: "--",
@@ -232,7 +231,9 @@ content = $(function() {
       result: {
         front: [],
         support: [],
+        detail: "",
         sumAud: 0,
+        sumAudInIMC: 0,
         sumFes: 0
       }
     },
@@ -247,12 +248,10 @@ content = $(function() {
       preload: function(reg, rar) {
         var prop;
         prop = reg + "_" + rar;
-        console.log(this.$data.loaded, reg, rar);
         if (!(prop in this.$data.loaded)) {
           return $.get(basePath + prop + ".json").then((function(_this) {
             return function(d, s) {
               var id, idol, _results;
-              console.log("loaded:", s, d);
               _this.$data.loaded.push(prop);
               _this.$data.activeIDs = [];
               _this.$data.activeNames = [];
@@ -272,7 +271,6 @@ content = $(function() {
       },
       preloadByFormChange: function() {
         var rar, reg;
-        console.log("formchange detected");
         reg = this.$data.idolFactory.region;
         rar = this.$data.idolFactory.rarity;
         if (reg === "--" || rar === "--") {
@@ -280,9 +278,27 @@ content = $(function() {
         }
         return this.preload(reg, rar);
       },
+      renkeiCheckAll: function(idx) {
+        var i, idol, _ref, _ref1;
+        if (this.$data.frontMember.every(function(idol) {
+          return idol['renkei_' + idx];
+        })) {
+          _ref = this.$data.frontMember;
+          for (i in _ref) {
+            idol = _ref[i];
+            idol['renkei_' + idx] = false;
+          }
+        } else {
+          _ref1 = this.$data.frontMember;
+          for (i in _ref1) {
+            idol = _ref1[i];
+            idol['renkei_' + idx] = true;
+          }
+        }
+        return this;
+      },
       addIdol: function(id, isSupport) {
         var member, tmp;
-        console.log(id, this.$data.idolList[id]);
         member = isSupport ? this.$data.supportMember : this.$data.frontMember;
         tmp = null;
         if (typeof this.$data.idolList[id] !== "undefined") {
@@ -307,7 +323,7 @@ content = $(function() {
         return this;
       },
       calc: function() {
-        var baseAP, baseDP, eff, front, i, idol, idol_i, idol_j, incAP, incDP, j, obj, ren, shinai, sumAud, sumFes, support, _ref, _ref1, _ref2, _ref3, _ref4, _ref5;
+        var baseAP, baseDP, detail, eff, front, i, idol, idol_i, idol_j, incByRenkeiAP, incByRenkeiDP, incByRoungeAP, incByRoungeDP, j, obj, ren, shinai, sumAud, sumAudTmp, sumFes, sumFesTmp, sumOfRenkeiAP, sumOfRenkeiDP, support, val, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
         front = [];
         support = [];
         _ref = this.$data.frontMember;
@@ -331,35 +347,54 @@ content = $(function() {
           }
           baseAP = parseInt(idol.ap) + Math.ceil(parseInt(idol.ap) * shinai);
           baseDP = parseInt(idol.dp) + Math.ceil(parseInt(idol.dp) * shinai);
-          incAP = Math.floor(baseAP * parseFloat(this.$data.roungeBonus.ap));
-          incDP = Math.floor(baseDP * parseFloat(this.$data.roungeBonus.dp));
+          incByRoungeAP = Math.floor(baseAP * parseFloat(this.$data.roungeBonus.ap));
+          incByRoungeDP = Math.floor(baseDP * parseFloat(this.$data.roungeBonus.dp));
+          incByRenkeiAP = [0, 0, 0];
+          incByRenkeiDP = [0, 0, 0];
           _ref1 = this.$data.renkei;
           for (j in _ref1) {
             ren = _ref1[j];
-            if (!idol["renkei_" + j]) {
-              continue;
+            if (idol["renkei_" + j]) {
+              incByRenkeiAP[j] += Math.floor(baseAP * parseFloat(ren.ap));
+              incByRenkeiDP[j] += Math.floor(baseDP * parseFloat(ren.dp));
             }
-            incAP += Math.floor(baseAP * parseFloat(ren.ap));
-            incDP += Math.floor(baseDP * parseFloat(ren.dp));
           }
+          sumOfRenkeiAP = incByRenkeiAP.reduce(function(a, b) {
+            return a + b;
+          });
+          sumOfRenkeiDP = incByRenkeiDP.reduce(function(a, b) {
+            return a + b;
+          });
           front[i] = {
+            name: idol.name,
+            orgAP: idol.ap,
+            orgDP: idol.dp,
+            shinaiBonusAP: Math.ceil(parseInt(idol.ap) * shinai),
+            shinaiBonusDP: Math.ceil(parseInt(idol.dp) * shinai),
             baseAP: baseAP,
             baseDP: baseDP,
-            incAP: incAP,
-            incDP: incDP
+            incByRoungeAP: incByRoungeAP,
+            incByRoungeDP: incByRoungeDP,
+            incByRenkeiAP: incByRenkeiAP,
+            incByRenkeiDP: incByRenkeiDP,
+            incBySkillAP: [],
+            incBySkillDP: [],
+            sumOfRenkeiAP: sumOfRenkeiAP,
+            sumOfRenkeiDP: sumOfRenkeiDP,
+            sumOfSkillAP: 0,
+            sumOfSkillDP: 0
           };
         }
         _ref2 = this.$data.frontMember;
         for (i in _ref2) {
           idol_i = _ref2[i];
-          eff = idol_i.skill_effect;
-          console.log(eff.target);
+          eff = getEffect(idol_i.skill_serialized, idol_i.skill_level);
+          if (!idol_i.skill_activated) {
+            continue;
+          }
           _ref3 = this.$data.frontMember;
           for (j in _ref3) {
             idol_j = _ref3[j];
-            if (!idol_j.skill_activated) {
-              continue;
-            }
             if (eff.target == null) {
               continue;
             }
@@ -369,38 +404,102 @@ content = $(function() {
             if (_ref4 = idol_j.region, __indexOf.call(eff.target, _ref4) < 0) {
               continue;
             }
-            front[j].incAP += Math.floor(front[j].baseAP * eff.ap);
-            front[j].incDP += Math.floor(front[j].baseDP * eff.dp);
+            front[j].incBySkillAP.push([eff, Math.floor(front[j].baseAP * eff.ap)]);
+            front[j].incBySkillDP.push([eff, Math.floor(front[j].baseDP * eff.dp)]);
+            front[j].sumOfSkillAP += Math.floor(front[j].baseAP * eff.ap);
+            front[j].sumOfSkillDP += Math.floor(front[j].baseDP * eff.dp);
           }
         }
         _ref5 = this.$data.supportMember;
         for (i in _ref5) {
           idol = _ref5[i];
           support[i] = {
+            name: idol.name,
             ap: Math.floor(parseInt(idol.ap) * 0.8),
             dp: Math.floor(parseInt(idol.dp) * 0.8)
           };
         }
         this.$data.result.front = front;
         this.$data.result.support = support;
+        detail = "";
+        detail += "-- フロントメンバー\n";
         sumAud = 0;
         sumFes = 0;
         for (i in front) {
           obj = front[i];
-          sumAud += obj.baseAP;
-          sumAud += obj.baseDP;
-          sumAud += obj.incAP;
-          sumAud += obj.incDP;
-          sumFes += obj.incAP;
-          sumFes += obj.baseAP;
+          sumAudTmp = 0;
+          sumAudTmp += obj.baseAP;
+          sumAudTmp += obj.baseDP;
+          sumAudTmp += obj.incByRoungeAP;
+          sumAudTmp += obj.incByRoungeDP;
+          sumAudTmp += obj.sumOfRenkeiAP + obj.sumOfRenkeiDP;
+          sumAudTmp += obj.sumOfSkillAP;
+          sumAudTmp += obj.sumOfSkillDP;
+          sumAud += sumAudTmp;
+          sumFesTmp = 0;
+          sumFesTmp += obj.sumOfRenkeiAP;
+          sumFesTmp += obj.sumOfSkillAP;
+          sumFesTmp += obj.baseAP;
+          sumFes += sumFesTmp;
+          detail += "[" + (parseInt(i) + 1) + "] " + obj.name + "\n";
+          detail += "  計算基本AP: " + obj.baseAP + "\n";
+          detail += "    基礎: " + obj.orgAP + " + 親愛: " + obj.shinaiBonusAP + "\n";
+          detail += "  連携スキル増加分: " + obj.sumOfRenkeiAP + "\n";
+          _ref6 = obj.incByRenkeiAP;
+          for (j in _ref6) {
+            val = _ref6[j];
+            if (0 < val) {
+              detail += "    + 連携スキル" + (parseInt(j) + 1) + " x" + this.$data.renkei[j].ap + ": " + val + "\n";
+            }
+          }
+          detail += "  固有スキル増加分: " + obj.sumOfSkillAP + "\n";
+          _ref7 = obj.incBySkillAP;
+          for (j in _ref7) {
+            val = _ref7[j];
+            detail += "    + " + val[0].target + " x" + val[0].ap + ": " + val[1] + "\n";
+          }
+          detail += "-> 合同フェス発揮基準値: " + sumFesTmp + "\n";
+          detail += "  計算基本DP: " + obj.baseDP + "\n";
+          detail += "    基礎: " + obj.orgDP + " + 親愛: " + obj.shinaiBonusDP + "\n";
+          detail += "  連携スキル増加分: " + obj.sumOfRenkeiDP + "\n";
+          _ref8 = obj.incByRenkeiDP;
+          for (j in _ref8) {
+            val = _ref8[j];
+            if (0 < val) {
+              detail += "    + 連携スキル" + (parseInt(j) + 1) + " x" + this.$data.renkei[j].dp + ": " + val + "\n";
+            }
+          }
+          detail += "  固有スキル増加分: " + obj.sumOfSkillDP + "\n";
+          _ref9 = obj.incBySkillDP;
+          for (j in _ref9) {
+            val = _ref9[j];
+            detail += "    + " + val[0].target + " x" + val[0].dp + ": " + val[1] + "\n";
+          }
+          detail += "  ラウンジボーナスAP: " + obj.incByRoungeAP + "\n";
+          detail += "  ラウンジボーナスDP: " + obj.incByRoungeDP + "\n";
+          detail += "-> オーディションバトル発揮値: " + sumAudTmp + "\n";
+          detail += "  -----  -----  -----  -----  \n";
         }
+        detail += "\n-- サポートメンバー\n";
         for (i in support) {
           obj = support[i];
-          sumAud += obj.ap;
-          sumAud += obj.dp;
+          sumAudTmp = 0;
+          sumAudTmp += obj.ap;
+          sumAudTmp += obj.dp;
+          sumAud += sumAudTmp;
+          detail += "" + obj.name + ": " + obj.ap + " + " + obj.dp + " = " + sumAudTmp + "\n";
         }
+        detail += "\n\n";
+        detail += "合同フェス発揮基準値（総合）: " + sumFes + "\n";
+        detail += "オーディションバトル発揮値（総合）: " + sumAud + "\n";
+        detail += "合同フェス先制アピール参考値\n";
+        detail += "BP1: normal->" + (parseInt(sumFes) / 12) + ", nice->" + (parseInt(sumFes) / 6) + ", perfect->" + (parseInt(sumFes) / 2) + "\n";
+        detail += "BP2: normal->" + (parseInt(sumFes) / 20) + ", nice->" + (parseInt(sumFes) / 10) + ", perfect->" + (parseInt(sumFes) * 3 / 10) + "\n";
+        detail += "BP3: normal->" + (parseInt(sumFes) / 24) + ", nice->" + (parseInt(sumFes) / 12) + ", perfect->" + (parseInt(sumFes) / 4) + "\n";
         this.$data.result.sumAud = sumAud;
-        return this.$data.result.sumFes = sumFes;
+        this.$data.result.sumAudInIMC = Math.ceil(sumAud * 1.1);
+        this.$data.result.sumFes = sumFes;
+        return this.$data.result.detail = detail;
       }
     }
   });

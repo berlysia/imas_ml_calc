@@ -9,6 +9,9 @@
       .factory {
         background: #ebb;
       }
+      td label {
+        text-align: center;
+      }
     </style>
   </head>
   <body>
@@ -23,6 +26,7 @@
           <span>連携スキル{{$index+1}}. </span>
           AP: <input type="number" min="0" step="0.001" v-model="ap">
           DP: <input type="number" min="0" step="0.001" v-model="dp">
+          <button v-on="click: renkeiCheckAll($index)">全員有効化</button>
         </div>
         <div>
           <span>ラウンジボーナス</span>
@@ -73,7 +77,9 @@
             </div>
           </td>
           <td>
-            発動: <input type="checkbox" v-model="idol.skill_activated">
+            <label>
+              発動: <input type="checkbox" v-model="idol.skill_activated">
+            </label>
           </td>
           <td>
             <label>
@@ -116,11 +122,6 @@
 
             <button v-on="click: addIdol(idolFactory.id)">new!!</button>
             <button v-on="click: addIdol(1e5)">manual</button>
-          </td>
-        </tr>
-        <tr>
-          <td>
-
           </td>
         </tr>
       </table>
@@ -189,14 +190,26 @@
       </table>
       <hr>
       <div id="result">
-        <button v-on="click: calc">calc</button>
-        <strong>オーディションバトル発揮値: {{result.sumAud}}</strong>
-        <strong>合同フェス発揮値（参考）: {{result.sumFes}}</strong>
+        <div>
+          <button v-on="click: calc">calc</button>
+        </div>
+        <div>
+          <p><strong>オーディションバトル発揮値: {{result.sumAud}}</strong></p>
+          <!-- <p><strong>オーディションバトル発揮値（ceil(上値x1.1)、参考）: {{result.sumAudInIMC}}</strong></p> -->
+          <!-- 5BPの時はこれを3倍すると実数値と一致するのでとりあえず持っておく -->
+          <p><strong>合同フェス発揮値（参考）: {{result.sumFes}}</strong></p>
+        </div>
+        <pre>{{result.detail}}</pre>
       </div>
     </div>
     <hr>
     <address>
-      [Thanks] 検証スレのみなさま、ABC開発者の方
+      <p>
+        [Thanks] 検証スレのみなさま、ABC開発者の方
+      </p>
+      <p>
+        不具合報告は <a href="http://twitter.com/berlysia">@berlysia</a> まで
+      </p>
     </address>
     <script charset="utf-8" src="main.js"></script>
   </body>
