@@ -300,56 +300,68 @@ content = $ ->
           sumAudTmp += obj.baseDP
           sumAudTmp += obj.incByRoungeAP
           sumAudTmp += obj.incByRoungeDP
-          sumAudTmp += obj.sumOfRenkeiAP + obj.sumOfRenkeiDP
+          sumAudTmp += obj.sumOfRenkeiAP
+          sumAudTmp += obj.sumOfRenkeiDP
           sumAudTmp += obj.sumOfSkillAP
           sumAudTmp += obj.sumOfSkillDP
           sumAud += sumAudTmp
 
-          sumFesTmp = 0
-          sumFesTmp += obj.sumOfRenkeiAP
-          sumFesTmp += obj.sumOfSkillAP
-          sumFesTmp += obj.baseAP
-          sumFes += sumFesTmp
+          sumFesTmpAP = 0
+          sumFesTmpAP += obj.baseAP
+          sumFesTmpAP += obj.incByRoungeAP
+          sumFesTmpAP += obj.sumOfRenkeiAP
+          sumFesTmpAP += obj.sumOfSkillAP
+          sumFes += sumFesTmpAP
+
+          sumFesTmpDP = 0
+          sumFesTmpDP += obj.baseDP
+          sumFesTmpDP += obj.incByRoungeDP
+          sumFesTmpDP += obj.sumOfRenkeiDP
+          sumFesTmpDP += obj.sumOfSkillDP
 
           detail += "[#{parseInt(i)+1}] #{obj.name}\n"
           detail += "  計算基本AP: #{obj.baseAP}\n"
           detail += "    基礎: #{obj.orgAP} + 親愛: #{obj.shinaiBonusAP}\n"
           detail += "  連携スキル増加分: #{obj.sumOfRenkeiAP}\n"
           for j,val of obj.incByRenkeiAP
-            detail += "    + 連携スキル#{(parseInt(j)+1)} x#{@$data.renkei[j].ap}: #{val}\n" if 0<val
+            detail += "    + 連携スキル#{(parseInt(j)+1)} x#{parseFloat(@$data.renkei[j].ap).toFixed(2)}: #{val}\n" if 0<val
           detail += "  固有スキル増加分: #{obj.sumOfSkillAP}\n"
           for j,val of obj.incBySkillAP
-            detail += "    + #{val[0].target} x#{val[0].ap}: #{val[1]}\n"
-          detail += "-> 合同フェス発揮基準値: #{sumFesTmp}\n"
+            detail += "    + #{val[0].target} x#{parseFloat(val[0].ap).toFixed(3)}: #{val[1]}\n"
+          detail += "  ラウンジボーナスAP: #{obj.incByRoungeAP}\n"
           detail += "  計算基本DP: #{obj.baseDP}\n"
           detail += "    基礎: #{obj.orgDP} + 親愛: #{obj.shinaiBonusDP}\n"
           detail += "  連携スキル増加分: #{obj.sumOfRenkeiDP}\n"
           for j,val of obj.incByRenkeiDP
-            detail += "    + 連携スキル#{(parseInt(j)+1)} x#{@$data.renkei[j].dp}: #{val}\n" if 0<val
+            detail += "    + 連携スキル#{(parseInt(j)+1)} x#{parseFloat(@$data.renkei[j].dp).toFixed(2)}: #{val}\n" if 0<val
           detail += "  固有スキル増加分: #{obj.sumOfSkillDP}\n"
           for j,val of obj.incBySkillDP
-            detail += "    + #{val[0].target} x#{val[0].dp}: #{val[1]}\n"
-          detail += "  ラウンジボーナスAP: #{obj.incByRoungeAP}\n"
+            detail += "    + #{val[0].target} x#{parseFloat(val[0].dp).toFixed(3)}: #{val[1]}\n"
           detail += "  ラウンジボーナスDP: #{obj.incByRoungeDP}\n"
+          detail += "-> 合同フェス発揮基準値: #{sumFesTmpAP}\n"
+          detail += "-> 合同フェス耐久基準値: #{sumFesTmpDP}\n"
           detail += "-> オーディションバトル発揮値: #{sumAudTmp}\n"
           detail += "  -----  -----  -----  -----  \n"
 
         detail += "\n-- サポートメンバー\n"
+        supportAudTmp = 0
         for i,obj of support
           sumAudTmp = 0
           sumAudTmp += obj.ap
           sumAudTmp += obj.dp
+          supportAudTmp += sumAudTmp
           sumAud += sumAudTmp
           detail += "#{obj.name}: #{obj.ap} + #{obj.dp} = #{sumAudTmp}\n"
+        detail += "サポートメンバー総合値: #{supportAudTmp}\n"
 
         detail += "\n\n"
         detail += "合同フェス発揮基準値（総合）: #{sumFes}\n"
         detail += "オーディションバトル発揮値（総合）: #{sumAud}\n"
 
         detail += "合同フェス先制アピール参考値\n"
-        detail += "BP1: normal->#{parseInt(sumFes)/12}, nice->#{parseInt(sumFes)/6}, perfect->#{parseInt(sumFes)/2}\n"
-        detail += "BP2: normal->#{parseInt(sumFes)/20}, nice->#{parseInt(sumFes)/10}, perfect->#{parseInt(sumFes)*3/10}\n"
-        detail += "BP3: normal->#{parseInt(sumFes)/24}, nice->#{parseInt(sumFes)/12}, perfect->#{parseInt(sumFes)/4}\n"
+        detail += "BP1: normal->#{(parseInt(sumFes)/12).toFixed(1)}, nice->#{(parseInt(sumFes)/6).toFixed(1)}, perfect->#{(parseInt(sumFes)/2).toFixed(1)}\n"
+        detail += "BP2: normal->#{(parseInt(sumFes)/20).toFixed(1)}, nice->#{(parseInt(sumFes)/10).toFixed(1)}, perfect->#{(parseInt(sumFes)*3/10).toFixed(1)}\n"
+        detail += "BP3: normal->#{(parseInt(sumFes)/24).toFixed(1)}, nice->#{(parseInt(sumFes)/12).toFixed(1)}, perfect->#{(parseInt(sumFes)/4).toFixed(1)}\n"
 
         @$data.result.sumAud = sumAud
         @$data.result.sumAudInIMC = Math.ceil(sumAud*1.1)

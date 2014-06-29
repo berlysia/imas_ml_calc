@@ -323,7 +323,7 @@ content = $(function() {
         return this;
       },
       calc: function() {
-        var baseAP, baseDP, detail, eff, front, i, idol, idol_i, idol_j, incByRenkeiAP, incByRenkeiDP, incByRoungeAP, incByRoungeDP, j, obj, ren, shinai, sumAud, sumAudTmp, sumFes, sumFesTmp, sumOfRenkeiAP, sumOfRenkeiDP, support, val, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
+        var baseAP, baseDP, detail, eff, front, i, idol, idol_i, idol_j, incByRenkeiAP, incByRenkeiDP, incByRoungeAP, incByRoungeDP, j, obj, ren, shinai, sumAud, sumAudTmp, sumFes, sumFesTmpAP, sumFesTmpDP, sumOfRenkeiAP, sumOfRenkeiDP, support, supportAudTmp, val, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
         front = [];
         support = [];
         _ref = this.$data.frontMember;
@@ -432,15 +432,22 @@ content = $(function() {
           sumAudTmp += obj.baseDP;
           sumAudTmp += obj.incByRoungeAP;
           sumAudTmp += obj.incByRoungeDP;
-          sumAudTmp += obj.sumOfRenkeiAP + obj.sumOfRenkeiDP;
+          sumAudTmp += obj.sumOfRenkeiAP;
+          sumAudTmp += obj.sumOfRenkeiDP;
           sumAudTmp += obj.sumOfSkillAP;
           sumAudTmp += obj.sumOfSkillDP;
           sumAud += sumAudTmp;
-          sumFesTmp = 0;
-          sumFesTmp += obj.sumOfRenkeiAP;
-          sumFesTmp += obj.sumOfSkillAP;
-          sumFesTmp += obj.baseAP;
-          sumFes += sumFesTmp;
+          sumFesTmpAP = 0;
+          sumFesTmpAP += obj.baseAP;
+          sumFesTmpAP += obj.incByRoungeAP;
+          sumFesTmpAP += obj.sumOfRenkeiAP;
+          sumFesTmpAP += obj.sumOfSkillAP;
+          sumFes += sumFesTmpAP;
+          sumFesTmpDP = 0;
+          sumFesTmpDP += obj.baseDP;
+          sumFesTmpDP += obj.incByRoungeDP;
+          sumFesTmpDP += obj.sumOfRenkeiDP;
+          sumFesTmpDP += obj.sumOfSkillDP;
           detail += "[" + (parseInt(i) + 1) + "] " + obj.name + "\n";
           detail += "  計算基本AP: " + obj.baseAP + "\n";
           detail += "    基礎: " + obj.orgAP + " + 親愛: " + obj.shinaiBonusAP + "\n";
@@ -449,16 +456,16 @@ content = $(function() {
           for (j in _ref6) {
             val = _ref6[j];
             if (0 < val) {
-              detail += "    + 連携スキル" + (parseInt(j) + 1) + " x" + this.$data.renkei[j].ap + ": " + val + "\n";
+              detail += "    + 連携スキル" + (parseInt(j) + 1) + " x" + (parseFloat(this.$data.renkei[j].ap).toFixed(2)) + ": " + val + "\n";
             }
           }
           detail += "  固有スキル増加分: " + obj.sumOfSkillAP + "\n";
           _ref7 = obj.incBySkillAP;
           for (j in _ref7) {
             val = _ref7[j];
-            detail += "    + " + val[0].target + " x" + val[0].ap + ": " + val[1] + "\n";
+            detail += "    + " + val[0].target + " x" + (parseFloat(val[0].ap).toFixed(3)) + ": " + val[1] + "\n";
           }
-          detail += "-> 合同フェス発揮基準値: " + sumFesTmp + "\n";
+          detail += "  ラウンジボーナスAP: " + obj.incByRoungeAP + "\n";
           detail += "  計算基本DP: " + obj.baseDP + "\n";
           detail += "    基礎: " + obj.orgDP + " + 親愛: " + obj.shinaiBonusDP + "\n";
           detail += "  連携スキル増加分: " + obj.sumOfRenkeiDP + "\n";
@@ -466,36 +473,40 @@ content = $(function() {
           for (j in _ref8) {
             val = _ref8[j];
             if (0 < val) {
-              detail += "    + 連携スキル" + (parseInt(j) + 1) + " x" + this.$data.renkei[j].dp + ": " + val + "\n";
+              detail += "    + 連携スキル" + (parseInt(j) + 1) + " x" + (parseFloat(this.$data.renkei[j].dp).toFixed(2)) + ": " + val + "\n";
             }
           }
           detail += "  固有スキル増加分: " + obj.sumOfSkillDP + "\n";
           _ref9 = obj.incBySkillDP;
           for (j in _ref9) {
             val = _ref9[j];
-            detail += "    + " + val[0].target + " x" + val[0].dp + ": " + val[1] + "\n";
+            detail += "    + " + val[0].target + " x" + (parseFloat(val[0].dp).toFixed(3)) + ": " + val[1] + "\n";
           }
-          detail += "  ラウンジボーナスAP: " + obj.incByRoungeAP + "\n";
           detail += "  ラウンジボーナスDP: " + obj.incByRoungeDP + "\n";
+          detail += "-> 合同フェス発揮基準値: " + sumFesTmpAP + "\n";
+          detail += "-> 合同フェス耐久基準値: " + sumFesTmpDP + "\n";
           detail += "-> オーディションバトル発揮値: " + sumAudTmp + "\n";
           detail += "  -----  -----  -----  -----  \n";
         }
         detail += "\n-- サポートメンバー\n";
+        supportAudTmp = 0;
         for (i in support) {
           obj = support[i];
           sumAudTmp = 0;
           sumAudTmp += obj.ap;
           sumAudTmp += obj.dp;
+          supportAudTmp += sumAudTmp;
           sumAud += sumAudTmp;
           detail += "" + obj.name + ": " + obj.ap + " + " + obj.dp + " = " + sumAudTmp + "\n";
         }
+        detail += "サポートメンバー総合値: " + supportAudTmp + "\n";
         detail += "\n\n";
         detail += "合同フェス発揮基準値（総合）: " + sumFes + "\n";
         detail += "オーディションバトル発揮値（総合）: " + sumAud + "\n";
         detail += "合同フェス先制アピール参考値\n";
-        detail += "BP1: normal->" + (parseInt(sumFes) / 12) + ", nice->" + (parseInt(sumFes) / 6) + ", perfect->" + (parseInt(sumFes) / 2) + "\n";
-        detail += "BP2: normal->" + (parseInt(sumFes) / 20) + ", nice->" + (parseInt(sumFes) / 10) + ", perfect->" + (parseInt(sumFes) * 3 / 10) + "\n";
-        detail += "BP3: normal->" + (parseInt(sumFes) / 24) + ", nice->" + (parseInt(sumFes) / 12) + ", perfect->" + (parseInt(sumFes) / 4) + "\n";
+        detail += "BP1: normal->" + ((parseInt(sumFes) / 12).toFixed(1)) + ", nice->" + ((parseInt(sumFes) / 6).toFixed(1)) + ", perfect->" + ((parseInt(sumFes) / 2).toFixed(1)) + "\n";
+        detail += "BP2: normal->" + ((parseInt(sumFes) / 20).toFixed(1)) + ", nice->" + ((parseInt(sumFes) / 10).toFixed(1)) + ", perfect->" + ((parseInt(sumFes) * 3 / 10).toFixed(1)) + "\n";
+        detail += "BP3: normal->" + ((parseInt(sumFes) / 24).toFixed(1)) + ", nice->" + ((parseInt(sumFes) / 12).toFixed(1)) + ", perfect->" + ((parseInt(sumFes) / 4).toFixed(1)) + "\n";
         this.$data.result.sumAud = sumAud;
         this.$data.result.sumAudInIMC = Math.ceil(sumAud * 1.1);
         this.$data.result.sumFes = sumFes;
