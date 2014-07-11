@@ -345,7 +345,7 @@ content = $(function() {
           if (500 <= parseInt(idol.shinai)) {
             shinai = 0.0825;
           }
-          baseAP = parseInt(idol.ap) + Math.ceil((parseInt(idol.dp) * shinai).toFixed(4));
+          baseAP = parseInt(idol.ap) + Math.ceil((parseInt(idol.ap) * shinai).toFixed(4));
           baseDP = parseInt(idol.dp) + Math.ceil((parseInt(idol.dp) * shinai).toFixed(4));
           incByRoungeAP = Math.floor(baseAP * parseFloat(this.$data.roungeBonus.ap));
           incByRoungeDP = Math.floor(baseDP * parseFloat(this.$data.roungeBonus.dp));
